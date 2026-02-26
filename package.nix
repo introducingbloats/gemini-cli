@@ -39,10 +39,8 @@ buildNpmPackage (finalAttrs: {
     # Normally done by scripts/generate-git-commit-info.js which shells out to git
     for dir in packages/cli/src/generated packages/core/src/generated; do
       mkdir -p "$dir"
-      cat > "$dir/git-commit.ts" << 'EOF'
-        export const GIT_COMMIT_INFO = '${shortRev}';
-        export const CLI_VERSION = '${version}';
-        EOF
+      echo "export const GIT_COMMIT_INFO = '${shortRev}';" > "$dir/git-commit.ts"
+      echo "export const CLI_VERSION = '${version}';" >> "$dir/git-commit.ts"
     done
     # replace version in package.json with short rev for better user experience
     for loc in package.json packages/cli/package.json packages/devtools/package.json; do
