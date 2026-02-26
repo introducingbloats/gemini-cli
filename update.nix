@@ -18,7 +18,7 @@ writeShellApplication {
     set -euo pipefail
     echo "Fetching latest revision from github.com/google-gemini/gemini-cli"
 
-    NEW_REV=$(git ls-remote https://github.com/google-gemini/gemini-cli.git main | awk '{print $1}')
+    NEW_REV=$(git ls-remote https://github.com/google-gemini/gemini-cli.git refs/heads/main | awk '{print $1}')
     PREV_REV=$(jq -r '.rev' version.json)
     if [ "$NEW_REV" = "$PREV_REV" ]; then
       echo "Revision matches current version.json, skipping update"
