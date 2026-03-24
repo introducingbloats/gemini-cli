@@ -1,18 +1,20 @@
 {
   lib,
-  nix-prefetch-scripts,
+  nurl,
   prefetch-npm-deps,
   writeShellApplication,
   jq,
   coreutils,
+  git,
 }:
 writeShellApplication {
   name = "antigravity-bin-update";
   runtimeInputs = [
     jq
-    nix-prefetch-scripts
+    nurl
     prefetch-npm-deps
     coreutils
+    git
   ];
   text = ''
     set -euo pipefail
@@ -26,15 +28,16 @@ writeShellApplication {
     fi
     echo "New revision $NEW_REV does not match current version.json revision $PREV_REV, updating version.json"
 
-    # fetch git and nix store path
-    PREFETCH_GIT=$(nix-prefetch-git https://github.com/google-gemini/gemini-cli.git --rev "$NEW_REV")
-    GIT_HASH=$(echo "$PREFETCH_GIT" | jq -r '.hash')
-    GIT_PATH=$(echo "$PREFETCH_GIT" | jq -r '.path')
-    echo "Fetched git revision with hash $GIT_HASH and path $GIT_PATH"
+    # fetch git hash
+    GIT_HASH=$(nurl --fetcher fetchgit --hash "https://github.com/google-gemini/gemini-cli.git" "$NEW_REV")
+    echo "Fetched git revision with hash $GIT_HASH"
 
     # fetch npm hash
+    GIT_PATH=$(mktemp -d)
+    git clone --quiet --depth 1 "https://github.com/google-gemini/gemini-cli.git" "$GIT_PATH"
     NPM_HASH=$(prefetch-npm-deps "$GIT_PATH/package-lock.json")
     echo "Fetched npm dependencies with hash $NPM_HASH"
+    rm -rf "$GIT_PATH"
 
     jq --arg rev "$NEW_REV" \
        --arg hash_git "$GIT_HASH" \
